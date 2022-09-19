@@ -105,7 +105,7 @@ public class EventManager: ObservableObject {
     }
     
     /// Clear the entire history of published events.
-    public func clearEventHistory() {
+    func clearEventHistory() {
         publishedEvents.removeAll()
     }
 }
