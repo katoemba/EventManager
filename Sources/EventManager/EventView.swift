@@ -15,7 +15,7 @@ public struct EventView: View {
         case error
     }
     
-    @ObservedObject var eventManager = EventManager.shared
+    @ObservedObject var eventManager = NotificationEventManager.shared
     /// The event type to list on.
     @State var filter = EventType.event
     

@@ -1,17 +1,5 @@
 import Foundation
 
-enum EventType: String, Codable {
-    case event
-    case error
-    case info
-}
-
-struct Event: Hashable {
-    let sender: String
-    let date: Date
-    let name: String
-    let data: String
-}
 
 /// A structured logging struct to log info or error messages.
 public struct Log: Codable {
@@ -30,8 +18,8 @@ public struct Log: Codable {
 }
 
 /// An event manager implementation that supports a pub-sub mechanism on Codable objects.
-/// The implementation uses NotificationManager internally, but could also connect to e.g. Kafka.
-public class EventManager: ObservableObject {
+/// The implementation uses NotificationManager internally.
+public class NotificationEventManager: ObservableObject {
     /// A generic handler block that subscribers use to process subscribed events.
     /// Parameters are the event name and a decodable object.
     public typealias EventHandlerObject<T> = ((_ name: String, _ object: T)->())
@@ -40,7 +28,8 @@ public class EventManager: ObservableObject {
     @Published var publishedEvents = [Event]()
     
     /// A shared singleton that can be used to subscribe to events, and publish events.
-    public static let shared = EventManager()
+    public static let shared = NotificationEventManager()
+    
     private init() {
     }
     
@@ -54,12 +43,15 @@ public class EventManager: ObservableObject {
         
         if let json = try? JSONSerialization.jsonObject(with: objectData, options: .mutableContainers) {
            if let prettyPrintedData = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted) {
-               publishedEvents.insert(Event(sender: sender, date: Date(), name: name, data: String(decoding: prettyPrintedData, as: UTF8.self)), at: 0)
+               DispatchQueue.main.async {
+                   self.publishedEvents.insert(Event(sender: sender, date: Date(), name: name, data: String(decoding: prettyPrintedData, as: UTF8.self)), at: 0)
+               }
            }
         }
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: name),
                                         object: nil,
                                         userInfo: ["data": objectData])
+        
     }
     
     /// Subscribe to an event by name.
@@ -107,21 +99,5 @@ public class EventManager: ObservableObject {
     /// Clear the entire history of published events.
     func clearEventHistory() {
         publishedEvents.removeAll()
-    }
-}
-
-extension Data {
-    func printJson() {
-        do {
-            let json = try JSONSerialization.jsonObject(with: self, options: [])
-            let data = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
-            guard let jsonString = String(data: data, encoding: .utf8) else {
-                print("Invalid data")
-                return
-            }
-            print(jsonString)
-        } catch {
-            print("Error: \(error.localizedDescription)")
-        }
     }
 }

@@ -8,7 +8,7 @@ final class EventManagerTests: XCTestCase {
     }
 
     func testSubscribe() {
-        let manager = EventManager.shared
+        let manager = NotificationEventManager.shared
         let eventObject = TestObject(count: 3, description: "MyObject")
         let expectation = self.expectation(description: "handler is called")
         let eventName = "TestSubscribe"
@@ -27,7 +27,7 @@ final class EventManagerTests: XCTestCase {
     }
 
     func testMultipleSubscribers() {
-        let manager = EventManager.shared
+        let manager = NotificationEventManager.shared
         let eventObject = TestObject(count: 3, description: "MyObject")
         let expectation = self.expectation(description: "handler is called")
         let eventName = "testMultipleSubscribers"
@@ -61,7 +61,7 @@ final class EventManagerTests: XCTestCase {
     }
 
     func testUnsubscribe() {
-        let manager = EventManager.shared
+        let manager = NotificationEventManager.shared
         let eventObject = TestObject(count: 3, description: "MyObject")
         let expectation = self.expectation(description: "handler is called")
         let eventName = "TestUnsubscribe"
@@ -83,7 +83,7 @@ final class EventManagerTests: XCTestCase {
     }
 
     func testUnsubscribeAll() {
-        let manager = EventManager.shared
+        let manager = NotificationEventManager.shared
         let eventObject = TestObject(count: 3, description: "MyObject")
         let expectation = self.expectation(description: "handler is called")
         let eventName = "TestUnsubscribeAll"
@@ -105,7 +105,7 @@ final class EventManagerTests: XCTestCase {
     }
     
     func testPublish() {
-        let manager = EventManager.shared
+        let manager = NotificationEventManager.shared
         let eventObject = TestObject(count: 3, description: "MyObject")
         let eventName = "TestPublish"
 
