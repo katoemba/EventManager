@@ -43,9 +43,7 @@ public class NotificationEventManager: ObservableObject {
         
         if let json = try? JSONSerialization.jsonObject(with: objectData, options: .mutableContainers) {
            if let prettyPrintedData = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted) {
-               DispatchQueue.main.async {
-                   self.publishedEvents.insert(Event(sender: sender, date: Date(), name: name, data: String(decoding: prettyPrintedData, as: UTF8.self)), at: 0)
-               }
+               self.publishedEvents.insert(Event(sender: sender, date: Date(), name: name, data: String(decoding: prettyPrintedData, as: UTF8.self)), at: 0)
            }
         }
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: name),
