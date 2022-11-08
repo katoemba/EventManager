@@ -1,6 +1,5 @@
 import Foundation
 
-
 /// A structured logging struct to log info or error messages.
 public struct Log: Codable {
     /// The message to log.
@@ -17,12 +16,53 @@ public struct Log: Codable {
     }
 }
 
+///
 /// An event manager implementation that supports a pub-sub mechanism on Codable objects.
-/// The implementation uses NotificationManager internally.
+///
+/// Use the shared manager to either publish or subscribe to a message.
+/// The implementation uses NotificationManager internally, so it works only in process
+///
+/// #### Publishing
+/// Example how to publish an event with an Encodable struct as payload:
+///
+/// ```swift
+/// struct Simple: Encodable {
+///   let value: Int
+///   let description: String
+/// }
+///
+/// let objectToSend = Simple(value: 10, description: "Number ten")
+/// NotificationEventManager.shared.publish("MessageType",
+///                                         sender: "Host",
+///                                         object: objectToSend)
+/// ```
+///
+/// This will publish the following json event:
+///
+/// ```json
+/// {
+///   "value": 10,
+///   "description": "Number ten"
+/// }
+/// ```
+///
+/// #### Subscribing
+/// Example how to subscribe to an event, which calls the handler with a Decodable object:
+///
+/// ```swift
+/// struct Simple: Decodable {
+///   let value: Int
+///   let description: String
+/// }
+/// NotificationEventManager.shared.subscribe("MessageType") { simpleObject in
+///     print("Got value \(simpleObject.value) with description \(simpleObject.description)")
+/// }
+/// ```
+///
 public class NotificationEventManager: ObservableObject {
     /// A generic handler block that subscribers use to process subscribed events.
     /// Parameters are the event name and a decodable object.
-    public typealias EventHandlerObject<T> = ((_ name: String, _ object: T)->())
+    public typealias EventHandlerObject<T: Decodable> = ((_ name: String, _ object: T)->())
     
     /// A history of events published, to which a SwiftUI view can bind.
     @Published var publishedEvents = [Event]()
@@ -38,7 +78,7 @@ public class NotificationEventManager: ObservableObject {
     ///   - name: The name of the event that is published. Interested parties can subscribe on this name. There are 2 special event names when object is of type ``Log``:  name = "Error" and name = "Info".
     ///   - sender: The party that is sending the event.
     ///   - object: The codable object to be published. Will be converted to JSON.
-    public func publish<T: Codable>(_ name: String, sender: String, object: T) {
+    public func publish<T: Encodable>(_ name: String, sender: String, object: T) {
         guard let objectData = try? JSONEncoder().encode(object) else { return }
         
         if let json = try? JSONSerialization.jsonObject(with: objectData, options: .mutableContainers) {
@@ -55,12 +95,13 @@ public class NotificationEventManager: ObservableObject {
     /// Subscribe to an event by name.
     /// This call is strongly typed, it will attempt to deserialize a JSON object into the type passed in.
     /// In case deserialization fails, an error will be logged, but the subscriber is not separately notified of the failure.
-    ///
+    /// The handler will be called on the main thread.
+    /// 
     /// - Parameters:
     ///   - name: The name of the event to subscribe to.
     ///   - handler: A handler block that takes a codable object as parameter.
     /// - Returns: A token that can be used to unsubscribe.
-    public func subscribe<T: Codable>(_ name: String, handler: @escaping EventHandlerObject<T>) -> Any {
+    public func subscribe<T: Decodable>(_ name: String, handler: @escaping EventHandlerObject<T>) -> Any {
         NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: name),
                                                object: nil,
                                                queue: nil) { notification in

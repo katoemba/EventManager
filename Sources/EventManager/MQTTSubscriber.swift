@@ -14,7 +14,7 @@ import NIOCore
 public class MQTTSubscriber: MQTTConnection {
     /// A generic handler block that subscribers use to process subscribed events.
     /// Parameters are the event name and a decodable object.
-    public typealias EventHandlerObject<T> = ((_ name: String, _ object: T)->())
+    public typealias EventHandlerObject<T: Decodable> = ((_ name: String, _ object: T)->())
 
     /// Initiatilize a subscriber, and immediately subscribe to a topic on a specific MQTT broker.
     /// This call is strongly typed, it will attempt to deserialize a JSON object into the type passed in.
