@@ -4,4 +4,8 @@
 
 # EventManager
 
-A description of this package.
+Simplified publish and subscribe of Codable entities in Swift.
+
+Supported infrastructures are:
+- NotificationManager (in process only)
+- MQTT
